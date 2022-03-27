@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container" id="app">
+        <div class="row mt-5">
+            <div class="col-12 border-bottom mb-5 d-flex justify-content-between align-items-center">
+                <h2>{{nameApp}}</h2>
+            </div>
+            <div class="col-4">
+                <form action="">
+                    <div class="form-group mr-1">
+                        <label>{{nameUser}}</label>
+                        <input type="text" class="form-control" placeholder="Nome" v-model="scheduling.name">
+                    </div>
+
+                    <div class="form-group mr-1">
+                        <label>{{emailUser}}</label>
+                        <input type="email" class="form-control" placeholder="E-mail" v-model="scheduling.email">
+                    </div>
+
+                    <div class="form-group mr-1">
+                        <label>{{phoneUser}}</label>
+                        <input type="phone" class="form-control" placeholder="Telefone/Celular" v-model="scheduling.phone">
+                    </div>
+
+                    <div class="form-group ml-1">
+                        <button v-if="!isEdit" class="btn btn-sm btn-rounded btn-success" @click.prevent="saveScheduling(scheduling)">Criar</button>
+                        <button v-if="isEdit" class="btn btn-sm btn-rounded btn-primary" @click.prevent="updateScheduling(scheduling)">Atualizar</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-8 border-left"> 
+                <div class="scheduling">  
+                    <div class="col-12 mb-2" v-for="scheduling in schedulings">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{scheduling.name}}</h5>
+
+                                <p class="card-text">{{scheduling.email}}, {{scheduling.phone}}</p>
+
+                                <a href="#" class="btn btn-sm btn-primary" @click.prevent="editScheduling(scheduling)">Editar</a>
+                                <a href="#" class="btn btn-sm btn-danger" @click.prevent="removeScheduling(scheduling.id)">Remover</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script>
+        let app = new Vue({
+            el: "#app",
+            data: {
+                schedulings: [],
+                nameApp: 'Agendamentos',
+                nameUser: 'Nome',
+                emailUser: 'E-mail',
+                phoneUser: 'Contato',
+                isEdit: false,
+                scheduling: {
+                    id: '',
+                    name: '',
+                    email: '',
+                    phone: '',
+                },
+            },
+            created() {
+                this.schedulings = JSON.parse(localStorage.getItem('schedulingsApp'));
+            },
+            methods: {
+                /*salvar um agendamento*/
+                saveScheduling(scheduling) {
+                    let schedulings = localStorage.getItem('schedulingsApp');
+                    scheduling.id = new Date().getTime();
+
+                    if (schedulings) {
+                        //Se tiver algo para salvar, atualizo os agendamentos
+                        schedulings =JSON.parse(schedulings);
+                        schedulings.push(scheduling);
+
+                    } else {
+                        //Crio esta chave agendametos
+                        schedulings = [scheduling];
+                    }
+                    this.schedulings = schedulings;
+                    //Atualizar localStorage independente de novo agendamento
+                    localStorage.setItem('schedulingsApp', JSON.stringify(schedulings));
+
+                    location.reload();
+                },
+                //remover um agendamento
+                removeScheduling(schedulingId) {
+                    //pegar o item do local storage
+                    let schedulings = localStorage.getItem('schedulingsApp');
+                    //se estiver vazio n faz nada
+                    if (!schedulings) return;
+
+                    schedulings = JSON.parse(schedulings);
+
+                    schedulings = schedulings.filter((scheduling) => {
+                        //retorno apenas o agendamento que tenha o id diferente do parametro no meu metodo
+                        return scheduling.id != schedulingId;
+                    });
+                    //atualizar a listagem
+                    this.schedulings = schedulings;
+                    localStorage.setItem('schedulingsApp', JSON.stringify(schedulings));
+
+                },
+
+                editScheduling(scheduling) {
+                    this.scheduling = scheduling;
+                    this.isEdit = true;
+                }, 
+
+                updateScheduling(scheduling) {
+                    let schedulings = this.schedulings.map(schedulingMap => {
+
+                        if (schedulingMap.id == scheduling.id) {
+                            return scheduling;
+                        }
+
+                        return schedulingMap;
+                    });
+
+                    this.schedulings = schedulings;
+                    this.isEdit = false;
+                    localStorage.setItem('schedulingsApp', JSON.stringify(schedulings));
+
+                    location.reload();
+                }
+
+            }
+        });
+    </script>
+</body>
+</html>
